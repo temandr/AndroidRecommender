@@ -1,7 +1,9 @@
 package com.example.mhacks6.androidrecommender;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -12,7 +14,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MainReceiver ma = new MainReceiver();
+        Intent service = new Intent(this, AppTrackService.class);
+        startService(service);
+        Log.i("Banana", "MainActivity - onCreate()");
     }
 
     @Override
