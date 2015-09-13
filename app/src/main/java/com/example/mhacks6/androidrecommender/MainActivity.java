@@ -17,6 +17,8 @@ public class MainActivity extends AppCompatActivity {
         Intent service = new Intent(this, AppTrackService.class);
         startService(service);
         Log.i("Banana", "MainActivity - onCreate()");
+
+        new AndroidRecommenderBGTask().execute();
     }
 
     @Override
