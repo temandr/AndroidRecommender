@@ -23,6 +23,10 @@ import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.microsoft.windowsazure.mobileservices.*;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.table.TableOperationCallback;
+
 /**
  * Created by temandr on 9/12/15.
  */
@@ -33,7 +37,10 @@ public class AppTrackService extends Service
     private String curPackage;
     private Location curLocation;
     private Set<String> ignore_packages;
-    private String curTime;
+    private int curTime;
+    private int curWeek;
+
+    private MobileServiceClient mClient;
 
     @Override
     public IBinder onBind(Intent intent) { return null;}
@@ -53,7 +60,19 @@ public class AppTrackService extends Service
         ignore_packages = new HashSet<String>();
         populateIgnorePackages();
 
+        try {
+            mClient = new MobileServiceClient(
+                    "https://lockscreenmhacks6.azure-mobile.net/",
+                    "qzAjMcWnZoDxcEaEILrykvIbLQPywO14",
+                    this
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         executorService.submit(tt);
+
+
     }
 
     private void populateIgnorePackages()
@@ -67,15 +86,32 @@ public class AppTrackService extends Service
         @Override
         public void run()
         {
-            while(true) {
-
+            Item i;
+            while(true)
+            {
                 String packageName = am.getRunningTasks(1).get(0).topActivity.getPackageName();
                 if(!curPackage.equals(packageName) && !ignore_packages.contains(packageName)) {
                     //New Package
                     curPackage = packageName;
                     curLocation = getLocationFunc();
                     curTime = getTime();
-                    Log.i("Banana", "AppTrackService - run() - " + packageName + "::" + curLocation + "::" + getTime());
+                    curWeek = getWeek();
+                    i = new Item(curPackage, curLocation.toString(), curTime, curWeek);
+
+                    mClient.getTable(Item.class).insert(i, new TableOperationCallback<Item>() {
+                        @Override
+                        public void onCompleted(Item entity, Exception exception, ServiceFilterResponse response) {
+                            if(exception == null)
+                            {
+                                Log.i("Banana", "Sweet");
+                            } else
+                            {
+                                Log.i("Banana", "crap.");
+
+                            }
+                        }
+                    });
+                    Log.i("Banana", "AppTrackService - run() - " + packageName + "::" + curLocation + "::" + curTime);
                 }
 
                 try {
@@ -98,14 +134,21 @@ public class AppTrackService extends Service
         return loc;
     }
 
-    public String getTime()
+    public int getTime()
     {
         Calendar c = new GregorianCalendar(TimeZone.getDefault());
         c.setTime(new Date());
 
         //dayofweek:hour:AM/PM
         int hour = c.get(Calendar.AM_PM) * 12 +  c.get(Calendar.HOUR) -1;
-        return c.get(Calendar.DAY_OF_WEEK) + ":" + hour;
+        return hour;
+    }
+
+    public int getWeek()
+    {
+        Calendar c = new GregorianCalendar(TimeZone.getDefault());
+        c.setTime(new Date());
+        return c.get(Calendar.DAY_OF_WEEK);
     }
 
 

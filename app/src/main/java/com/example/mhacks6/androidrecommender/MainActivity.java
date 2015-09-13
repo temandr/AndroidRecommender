@@ -7,7 +7,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+
 public class MainActivity extends AppCompatActivity {
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -15,9 +18,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Intent service = new Intent(this, AppTrackService.class);
+
+
+
         startService(service);
         Log.i("Banana", "MainActivity - onCreate()");
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
